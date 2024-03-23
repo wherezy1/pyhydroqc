@@ -9,6 +9,9 @@ from pyhydroqc import anomaly_utilities
 import pandas as pd
 import numpy as np
 
+import warnings
+warnings.filterwarnings("ignore")
+warnings.simplefilter(action='ignore', category=FutureWarning)
 
 def calib_edge_detect(observed, width, calib_params, threshold=float("nan"), num_events=1, alpha=float("nan")):
     """

@@ -9,6 +9,9 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from enum import Enum
 
+import warnings
+warnings.filterwarnings("ignore")
+warnings.simplefilter(action='ignore', category=FutureWarning)
 
 class ModelWorkflow:
     pass

@@ -7,6 +7,9 @@
 from pyhydroqc import anomaly_utilities
 import numpy as np
 
+import warnings
+warnings.filterwarnings("ignore")
+warnings.simplefilter(action='ignore', category=FutureWarning)
 
 def range_check(df, maximum, minimum):
     """

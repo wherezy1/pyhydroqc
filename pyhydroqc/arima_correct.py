@@ -9,6 +9,9 @@ import pmdarima as pm
 import warnings
 import pandas as pd
 
+import warnings
+warnings.filterwarnings("ignore")
+warnings.simplefilter(action='ignore', category=FutureWarning)
 
 def arima_group(df, anomalies, group, min_group_len=20):
     """
@@ -181,8 +184,11 @@ def generate_corrections(df, observed, anomalies, model_limit=6, savecasts=False
             df.loc[df['arima_group'] > i, 'arima_group'] -= 2
 
     # delete unused columns
-    df = df.drop('group', 1)
-    df = df.drop('ARIMA_event', 1)
-    df = df.drop('arima_group', 1)
+    # df = df.drop('group', 1)
+    # df = df.drop('ARIMA_event', 1)
+    # df = df.drop('arima_group', 1)
+    df = df.drop('group', axis=1)
+    df = df.drop('ARIMA_event', axis=1)
+    df = df.drop('arima_group', axis=1)
 
     return df

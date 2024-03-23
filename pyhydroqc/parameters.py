@@ -20,6 +20,9 @@ from dataclasses import dataclass
 # CALIBRATION PARAMETERS #
 #########################################
 
+import warnings
+warnings.filterwarnings("ignore")
+warnings.simplefilter(action='ignore', category=FutureWarning)
 @dataclass
 class CalibrationParameters:
     hour_low: int

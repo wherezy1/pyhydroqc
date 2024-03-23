@@ -19,6 +19,9 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, LSTM, Bidirectional
 import warnings
 
+import warnings
+warnings.filterwarnings("ignore")
+warnings.simplefilter(action='ignore', category=FutureWarning)
 
 def pdq(data):
     """
@@ -125,9 +128,10 @@ class LSTMModelContainer:
 def lstm_univar(df, LSTM_params, summary, name, model_output=True, model_save=True):
     """
     lstm_univar builds, trains, and evaluates a vanilla LSTM model for univariate data.
+    / lstm_univar 构建、训练和评估单变量数据的普通 LSTM 模型。
     """
-    scaler = create_scaler(df[['observed']])
-    df['obs_scaled'] = scaler.transform(df[['observed']])
+    scaler_observed = create_scaler(df[['observed']]) # 参数observed
+    df['obs_scaled'] = scaler_observed.transform(df[['observed']])
 
     X_train, y_train = create_training_dataset(df[['obs_scaled']], df[['anomaly']], LSTM_params.samples, LSTM_params.time_steps)
     num_features = X_train.shape[2]
@@ -143,19 +147,22 @@ def lstm_univar(df, LSTM_params, summary, name, model_output=True, model_save=Tr
         verbose = 1
     else:
         verbose = 0
-    history = train_model(X_train, y_train, model, LSTM_params.patience, verbose=verbose)
 
-    df['raw_scaled'] = scaler.transform(df[['raw']])
+    ##
+    history = train_model(X_train, y_train, model, LSTM_params.patience, verbose=verbose)
+    # TODO Error
+    scaler_raw = create_scaler(df[['raw']])     # 这样改？
+    df['raw_scaled'] = scaler_raw.transform(df[['raw']])
     X_test, y_test = create_sequenced_dataset(df[['raw_scaled']], LSTM_params.time_steps)
 
     train_pred = model.predict(X_train)
     test_pred = model.predict(X_test)
     model_eval = model.evaluate(X_test, y_test)
 
-    train_predictions = pd.DataFrame(scaler.inverse_transform(train_pred))
-    predictions = pd.DataFrame(scaler.inverse_transform(test_pred))
-    y_train_unscaled = pd.DataFrame(scaler.inverse_transform(y_train))
-    y_test_unscaled = pd.DataFrame(scaler.inverse_transform(y_test))
+    train_predictions = pd.DataFrame(scaler_observed.inverse_transform(train_pred))
+    predictions = pd.DataFrame(scaler_observed.inverse_transform(test_pred))
+    y_train_unscaled = pd.DataFrame(scaler_raw.inverse_transform(y_train))
+    y_test_unscaled = pd.DataFrame(scaler_raw.inverse_transform(y_test))
 
     train_residuals = pd.DataFrame(np.abs(train_predictions - y_train_unscaled))
     test_residuals = pd.DataFrame(np.abs(predictions - y_test_unscaled))
@@ -183,8 +190,8 @@ def lstm_multivar(df_observed, df_anomaly, df_raw, LSTM_params, summary, name, m
     """
     lstm_multivar builds, trains, and evaluates a vanilla LSTM model for multivariate data.
     """
-    scaler = create_scaler(df_observed)
-    df_scaled = pd.DataFrame(scaler.transform(df_observed), index=df_observed.index, columns=df_observed.columns)
+    scaler_observed = create_scaler(df_observed)
+    df_scaled = pd.DataFrame(scaler_observed.transform(df_observed), index=df_observed.index, columns=df_observed.columns)
 
     X_train, y_train = create_training_dataset(df_scaled, df_anomaly, LSTM_params.samples, LSTM_params.time_steps)
     num_features = X_train.shape[2]
@@ -202,17 +209,18 @@ def lstm_multivar(df_observed, df_anomaly, df_raw, LSTM_params, summary, name, m
         verbose = 0
     history = train_model(X_train, y_train, model, LSTM_params.patience, verbose=verbose)
 
-    df_raw_scaled = pd.DataFrame(scaler.transform(df_raw), index=df_raw.index, columns=df_raw.columns)
+    scaler_raw = create_scaler(df_raw)
+    df_raw_scaled = pd.DataFrame(scaler_raw.transform(df_raw), index=df_raw.index, columns=df_raw.columns)
     X_test, y_test = create_sequenced_dataset(df_raw_scaled, LSTM_params.time_steps)
 
     train_pred = model.predict(X_train)
     test_pred = model.predict(X_test)
     model_eval = model.evaluate(X_test, y_test)
 
-    train_predictions = pd.DataFrame(scaler.inverse_transform(train_pred))
-    predictions = pd.DataFrame(scaler.inverse_transform(test_pred))
-    y_train_unscaled = pd.DataFrame(scaler.inverse_transform(y_train))
-    y_test_unscaled = pd.DataFrame(scaler.inverse_transform(y_test))
+    train_predictions = pd.DataFrame(scaler_observed.inverse_transform(train_pred))
+    predictions = pd.DataFrame(scaler_observed.inverse_transform(test_pred))
+    y_train_unscaled = pd.DataFrame(scaler_raw.inverse_transform(y_train))
+    y_test_unscaled = pd.DataFrame(scaler_raw.inverse_transform(y_test))
 
     train_residuals = pd.DataFrame(np.abs(train_predictions - y_train_unscaled))
     test_residuals = pd.DataFrame(np.abs(predictions - y_test_unscaled))
@@ -240,8 +248,8 @@ def lstm_univar_bidir(df, LSTM_params, summary, name, model_output=True, model_s
     """
     lstm_univar_bidir builds, trains, and evaluates a bidirectional LSTM model for univariate data.
     """
-    scaler = create_scaler(df[['observed']])
-    df['obs_scaled'] = scaler.transform(df[['observed']])
+    scaler_observed = create_scaler(df[['observed']]) # 参数observed
+    df['obs_scaled'] = scaler_observed.transform(df[['observed']])
 
     X_train, y_train = create_bidir_training_dataset(df[['obs_scaled']], df[['anomaly']], LSTM_params.samples, LSTM_params.time_steps)
 
@@ -259,18 +267,19 @@ def lstm_univar_bidir(df, LSTM_params, summary, name, model_output=True, model_s
     else:
         verbose = 0
     history = train_model(X_train, y_train, model, LSTM_params.patience, verbose=verbose)
-
-    df['raw_scaled'] = scaler.transform(df[['raw']])
+    # TODO Error
+    scaler_raw = create_scaler(df[['raw']])     # 这样改？
+    df['raw_scaled'] = scaler_raw.transform(df[['raw']])
     X_test, y_test = create_bidir_sequenced_dataset(df[['raw_scaled']], LSTM_params.time_steps)
 
     train_pred = model.predict(X_train)
     test_pred = model.predict(X_test)
     model_eval = model.evaluate(X_test, y_test)
 
-    train_predictions = pd.DataFrame(scaler.inverse_transform(train_pred))
-    predictions = pd.DataFrame(scaler.inverse_transform(test_pred))
-    y_train_unscaled = pd.DataFrame(scaler.inverse_transform(y_train))
-    y_test_unscaled = pd.DataFrame(scaler.inverse_transform(y_test))
+    train_predictions = pd.DataFrame(scaler_observed.inverse_transform(train_pred))
+    predictions = pd.DataFrame(scaler_observed.inverse_transform(test_pred))
+    y_train_unscaled = pd.DataFrame(scaler_raw.inverse_transform(y_train))
+    y_test_unscaled = pd.DataFrame(scaler_raw.inverse_transform(y_test))
 
     train_residuals = pd.DataFrame(np.abs(train_predictions - y_train_unscaled))
     test_residuals = pd.DataFrame(np.abs(predictions - y_test_unscaled))
@@ -298,8 +307,8 @@ def lstm_multivar_bidir(df_observed, df_anomaly, df_raw, LSTM_params, summary, n
     """
     lstm_multivar_bidir builds, trains, and evaluates a bidirectional LSTM model for multivariate data.
     """
-    scaler = create_scaler(df_observed)
-    df_scaled = pd.DataFrame(scaler.transform(df_observed), index=df_observed.index, columns=df_observed.columns)
+    scaler_observed = create_scaler(df_observed)
+    df_scaled = pd.DataFrame(scaler_observed.transform(df_observed), index=df_observed.index, columns=df_observed.columns)
 
     X_train, y_train = create_bidir_training_dataset(df_scaled, df_anomaly, LSTM_params.samples, LSTM_params.time_steps)
     num_features = X_train.shape[2]
@@ -317,17 +326,18 @@ def lstm_multivar_bidir(df_observed, df_anomaly, df_raw, LSTM_params, summary, n
         verbose = 0
     history = train_model(X_train, y_train, model, LSTM_params.patience, verbose=verbose)
 
-    df_raw_scaled = pd.DataFrame(scaler.transform(df_raw), index=df_raw.index, columns=df_raw.columns)
+    scaler_raw = create_scaler(df_raw)
+    df_raw_scaled = pd.DataFrame(scaler_raw.transform(df_raw), index=df_raw.index, columns=df_raw.columns)
     X_test, y_test = create_bidir_sequenced_dataset(df_raw_scaled, LSTM_params.time_steps)
 
     train_pred = model.predict(X_train)
     test_pred = model.predict(X_test)
     model_eval = model.evaluate(X_test, y_test)
 
-    train_predictions = pd.DataFrame(scaler.inverse_transform(train_pred))
-    predictions = pd.DataFrame(scaler.inverse_transform(test_pred))
-    y_train_unscaled = pd.DataFrame(scaler.inverse_transform(y_train))
-    y_test_unscaled = pd.DataFrame(scaler.inverse_transform(y_test))
+    train_predictions = pd.DataFrame(scaler_observed.inverse_transform(train_pred))
+    predictions = pd.DataFrame(scaler_observed.inverse_transform(test_pred))
+    y_train_unscaled = pd.DataFrame(scaler_raw.inverse_transform(y_train))
+    y_test_unscaled = pd.DataFrame(scaler_raw.inverse_transform(y_test))
 
     train_residuals = pd.DataFrame(np.abs(train_predictions - y_train_unscaled))
     test_residuals = pd.DataFrame(np.abs(predictions - y_test_unscaled))
@@ -358,6 +368,12 @@ def create_scaler(data):
         data: a series of values to be scaled.
     Returns:
         scaler: a StandardScaler fit to the input data
+
+    create_scaler基于输入数据创建一个缩放器对象，该对象删除均值并缩放为单位向量。
+    参数：
+        data：要缩放的一系列值。
+    返回：
+        缩放器：适合输入数据的 StandardScaler
     """
     scaler = StandardScaler()
     scaler = scaler.fit(data)

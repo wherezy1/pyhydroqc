@@ -8,7 +8,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 os.chdir('..')
-os.chdir('..')
+# TODO 会导致当前工作路径 为 code，而不是 pyhydroqc-lasted
+# os.chdir('..')
 
 #### Retrieve data
 #########################################
@@ -26,6 +27,7 @@ det_changed_pct = dict()
 tech_changed_ct = dict()
 det_changed_ct = dict()
 print(site)
+print(os.getcwd())
 for snsr in sensors:
     corrections[snsr] = pd.read_csv(site + '_' + snsr + '_' + 'corrections.csv',
                                                  header=0,

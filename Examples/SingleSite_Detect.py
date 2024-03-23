@@ -1,5 +1,5 @@
 #####################################################
-### SINGLE SITE ANOMALY DETECTION AND CORRECTION
+### single site anomaly detection and correction
 #####################################################
 
 #### Import Libraries and Functions
@@ -14,7 +14,9 @@ import math
 import pickle
 import pandas as pd
 import matplotlib.pyplot as plt
-
+import warnings
+warnings.filterwarnings("ignore")
+warnings.simplefilter(action='ignore', category=FutureWarning)
 #### Retrieve data
 #########################################
 site = 'MainStreet'
@@ -164,10 +166,10 @@ for snsr in calib_sensors:
                                                                                    gap=gaps[snsr]['gap'][i],
                                                                                    replace=True)
 
-#### Model Based Anomaly Detection
+#### Model Based Anomaly Detection / 基于模型的异常检测
 #########################################
 
-##### ARIMA Detection
+##### 一、ARIMA Detection / ARIMA检测
 #########################################
 ARIMA = dict()
 for snsr in sensors:
@@ -176,9 +178,9 @@ for snsr in sensors:
             rules=False, plots=False, summary=False, compare=False)
 print('ARIMA detection complete.\n')
 
-##### LSTM Detection
+##### 二、LSTM Detection / LSTM 检测
 #########################################
-###### DATA: univariate, MODEL: vanilla
+###### 1、DATA: univariate, MODEL: vanilla  / 单变量 + vanilla
 lstm_univar = dict()
 for snsr in sensors:
     name = site + '_' + snsr
@@ -186,7 +188,7 @@ for snsr in sensors:
             df=sensor_array[snsr], sensor=snsr, params=site_params[site][snsr], LSTM_params=LSTM_params, model_type=ModelType.VANILLA, name=name,
             rules=False, plots=False, summary=False, compare=False, model_output=False, model_save=False)
 
-###### DATA: univariate,  MODEL: bidirectional
+###### 2、DATA: univariate,  MODEL: bidirectional / 单变量 + 双向
 lstm_univar_bidir = dict()
 for snsr in sensors:
     name = site + '_' + snsr
@@ -194,19 +196,19 @@ for snsr in sensors:
             df=sensor_array[snsr], sensor=snsr, params=site_params[site][snsr], LSTM_params=LSTM_params, model_type=ModelType.BIDIRECTIONAL, name=name,
             rules=False, plots=False, summary=False,compare=False, model_output=False, model_save=False)
 
-###### DATA: multivariate,  MODEL: vanilla
+###### 3、DATA: multivariate,  MODEL: vanilla / 多变量 + vanilla
 name = site
 lstm_multivar = model_workflow.lstm_detect_multivar(
         sensor_array=sensor_array, sensors=sensors, params=site_params[site], LSTM_params=LSTM_params, model_type=ModelType.VANILLA, name=name,
         rules=False, plots=False, summary=False, compare=False, model_output=False, model_save=False)
 
-###### DATA: multivariate,  MODEL: bidirectional
+###### 4、DATA: multivariate,  MODEL: bidirectional / 多变量 + 双向
 name = site
 lstm_multivar_bidir = model_workflow.lstm_detect_multivar(
         sensor_array=sensor_array, sensors=sensors, params=site_params[site], LSTM_params=LSTM_params, model_type=ModelType.BIDIRECTIONAL, name=name,
         rules=False, plots=False, summary=False, compare=False, model_output=False, model_save=False)
 
-##### Aggregate Detections for All Models
+##### 5、Aggregate Detections for All Models / 所有模型的聚合检测
 #########################################
 results_all = dict()
 metrics_all = dict()
@@ -281,6 +283,14 @@ for snsr in sensors:
                                                            anomalies='detected_event',
                                                            savecasts=True)
     print(snsr + 'correction complete')
+
+# TODO bug:没有 Examples 这个目录
+import os
+# 检查目录是否存在，如果不存在则创建目录
+directory = 'Examples'
+print(os.getcwd())
+if not os.path.exists(directory):
+    os.makedirs(directory)
 
 # Saving corrections
 for snsr in sensors:

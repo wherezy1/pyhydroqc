@@ -1,13 +1,17 @@
 #### Import Libraries and Functions
+import os
 
 from pyhydroqc import anomaly_utilities
 import matplotlib.pyplot as plt
 from pyhydroqc import rules_detect, calibration
 from pyhydroqc.parameters import site_params, calib_params
 
+import warnings
+warnings.filterwarnings("ignore")
+
 #### Retrieve data
 #########################################
-
+os.chdir("..")
 site = 'MainStreet'
 sensors = ['temp', 'cond', 'ph', 'do']
 years = [2014, 2015, 2016, 2017, 2018, 2019]
