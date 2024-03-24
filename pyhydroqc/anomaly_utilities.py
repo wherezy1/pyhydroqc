@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 from scipy.stats import norm
 import warnings
 warnings.filterwarnings("ignore")
-warnings.simplefilter(action='ignore', category=FutureWarning)
+warnings.simplefilter(action='ignore', category=Warning)
 
 pd.options.mode.chained_assignment = None
 

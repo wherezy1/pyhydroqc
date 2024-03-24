@@ -48,17 +48,23 @@ def arima_detect(df, sensor, params,
     detections = anomaly_utilities.detect_anomalies(df['observed'], predictions, residuals, threshold, summary=True)
 
     # WIDEN AND NUMBER ANOMALOUS EVENTS #
+    # 扩大和增加异常事件 #
+    ## TODO erro df中没有 labeled_event
+    ## 这里参考了 ARIMA_detect.py -- 102行 的四个转化
+    ## 效果都是为了扩大和增加异常事件
+    ## Others: params 参考 parameters.py - 73行 -- site_params
+    df['labeled_event'] = anomaly_utilities.anomaly_events(df['labeled_anomaly'], params.widen)
     df['detected_anomaly'] = detections['anomaly']
     df['all_anomalies'] = df.eval('detected_anomaly or anomaly')
     df['detected_event'] = anomaly_utilities.anomaly_events(df['all_anomalies'], params.widen)
 
     if compare:
         df['labeled_event'] = anomaly_utilities.anomaly_events(df['labeled_anomaly'], params.widen)
-        # DETERMINE METRICS #
+        # DETERMINE METRICS # / # 确定指标#
         anomaly_utilities.compare_events(df, params.widen)
         metrics = anomaly_utilities.metrics(df)
         e_metrics = anomaly_utilities.event_metrics(df)
-        # OUTPUT RESULTS #
+        # OUTPUT RESULTS # / # 输出结果#
         print('Model type: ARIMA')
         print('Sensor: ' + sensor)
         anomaly_utilities.print_metrics(metrics)
@@ -72,6 +78,7 @@ def arima_detect(df, sensor, params,
         anomaly_utilities.plt_results(
             raw=df['raw'],
             predictions=detections['prediction'],
+            ## TODO erro df中没有 labeled_event
             labels=df['labeled_event'],
             detections=df['detected_event'],
             sensor=sensor
@@ -118,6 +125,7 @@ def lstm_detect_univar(df, sensor, params, LSTM_params, model_type, name='',
     print(sensor + ' ' + str(model_type) + ' LSTM model complete.')
     if plots:
         plt.figure()
+        ## TODO 修改 model_output 与 plot 同时为true，才能打印model 的损失值和验证值
         plt.plot(model.history.history['loss'], label='Training Loss')
         plt.plot(model.history.history['val_loss'], label='Validation Loss')
         plt.legend()
@@ -149,6 +157,9 @@ def lstm_detect_univar(df, sensor, params, LSTM_params, model_type, name='',
         df_anomalies = df.iloc[ts:]
     elif model_type == ModelType.BIDIRECTIONAL:
         df_anomalies = df.iloc[ts:-ts]
+
+    ## TODO 修改
+    df['labeled_event'] = anomaly_utilities.anomaly_events(df['labeled_anomaly'], params.widen)
     df_anomalies['detected_anomaly'] = detections['anomaly']
     df_anomalies['all_anomalies'] = df_anomalies.eval('detected_anomaly or anomaly')
     df_anomalies['detected_event'] = anomaly_utilities.anomaly_events(df_anomalies['all_anomalies'], params.widen)
@@ -259,7 +270,7 @@ def lstm_detect_multivar(sensor_array, sensors, params, LSTM_params, model_type,
             observed[snsr+'_obs'], predictions[snsr], residuals[snsr], threshold[snsr], summary=True)
         if plots:
             plt.figure()
-            anomaly_utilities.plt_threshold(residuals[snsr], threshold[snsr], sensors[snsr])
+            anomaly_utilities.plt_threshold(residuals[snsr], threshold[snsr], snsr)
             plt.show()
     print('Threshold determination complete.')
 

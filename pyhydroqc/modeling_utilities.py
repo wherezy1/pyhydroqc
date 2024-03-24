@@ -46,7 +46,7 @@ def build_arima_model(data, p, d, q, summary=True, suppress_warnings=True):
         p: ARIMA hyperparameter that can be determined by manual assessment or by automated means.
         d: ARIMA hyperparameter that can be determined by manual assessment or by automated means.
         q: ARIMA hyperparameter that can be determined by manual assessment or by automated means.
-        summary: indicates if the model summary should be printed.
+        summary: indicates if the model summary should be printed. / 指示是否应打印模型摘要
         suppress_warnings: indicates whether warnings associated with ARIMA model development and fitting should be suppressed.
     Returns:
         model_fit: SARIMAX model object.
@@ -150,7 +150,7 @@ def lstm_univar(df, LSTM_params, summary, name, model_output=True, model_save=Tr
 
     ##
     history = train_model(X_train, y_train, model, LSTM_params.patience, verbose=verbose)
-    # TODO Error
+    # TODO Error 修改后的 2024/3/22
     scaler_raw = create_scaler(df[['raw']])     # 这样改？
     df['raw_scaled'] = scaler_raw.transform(df[['raw']])
     X_test, y_test = create_sequenced_dataset(df[['raw_scaled']], LSTM_params.time_steps)
@@ -267,7 +267,7 @@ def lstm_univar_bidir(df, LSTM_params, summary, name, model_output=True, model_s
     else:
         verbose = 0
     history = train_model(X_train, y_train, model, LSTM_params.patience, verbose=verbose)
-    # TODO Error
+    # TODO Error - 修改
     scaler_raw = create_scaler(df[['raw']])     # 这样改？
     df['raw_scaled'] = scaler_raw.transform(df[['raw']])
     X_test, y_test = create_bidir_sequenced_dataset(df[['raw_scaled']], LSTM_params.time_steps)
@@ -346,9 +346,10 @@ def lstm_multivar_bidir(df_observed, df_anomaly, df_raw, LSTM_params, summary, n
         model.save('originalsavedoutput/models/LSTM_multiivar_bidir_' + str(name))
 
     lstm_multivar_bidir = LSTMModelContainer()
+    ## TODO model_output 与 plot 同时为true
     if model_output:
-        lstm_univar_bidir.model = model
-        lstm_univar_bidir.history = history
+        lstm_multivar_bidir.model = model
+        lstm_multivar_bidir.history = history
     lstm_multivar_bidir.X_train = X_train
     lstm_multivar_bidir.y_train = y_train
     lstm_multivar_bidir.X_test = X_test

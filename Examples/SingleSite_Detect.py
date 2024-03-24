@@ -15,11 +15,13 @@ import pickle
 import pandas as pd
 import matplotlib.pyplot as plt
 import warnings
-warnings.filterwarnings("ignore")
-warnings.simplefilter(action='ignore', category=FutureWarning)
-#### Retrieve data
+# warnings.filterwarnings("ignore")
+warnings.simplefilter(action='ignore', category=Warning)
+#### Retrieve data / 检索数据
 #########################################
 site = 'MainStreet'
+# 水温、比电导、pH 值、溶解氧
+# Water temperature, specific conductance, pH, dissolved oxygen
 sensors = ['temp', 'cond', 'ph', 'do']
 years = [2017]
 sensor_array = anomaly_utilities.get_data(sensors=sensors, site=site, years=years, path="./LRO_data/")
@@ -175,7 +177,13 @@ ARIMA = dict()
 for snsr in sensors:
     ARIMA[snsr] = model_workflow.arima_detect(
             df=sensor_array[snsr], sensor=snsr, params=site_params[site][snsr],
-            rules=False, plots=False, summary=False, compare=False)
+            rules=False, plots=True, summary=False, compare=False)
+    # TODO : 参数的含义
+    # rules: RULES BASED DETECTION #= 基于规则的检测
+    #  plot: 是否打印 plot 图表
+    #  summary：是否打印模型的摘要信息
+    # compare：比较 metrics 和 event_metrics
+    # model_save: 保存模型
 print('ARIMA detection complete.\n')
 
 ##### 二、LSTM Detection / LSTM 检测
@@ -186,7 +194,8 @@ for snsr in sensors:
     name = site + '_' + snsr
     lstm_univar[snsr] = model_workflow.lstm_detect_univar(
             df=sensor_array[snsr], sensor=snsr, params=site_params[site][snsr], LSTM_params=LSTM_params, model_type=ModelType.VANILLA, name=name,
-            rules=False, plots=False, summary=False, compare=False, model_output=False, model_save=False)
+            rules=False, plots=True, summary=False, compare=False, model_output=True, model_save=False)
+        ## TODO 修改 model_output 与 plot 同时为true，才能打印model 的损失值和验证值
 
 ###### 2、DATA: univariate,  MODEL: bidirectional / 单变量 + 双向
 lstm_univar_bidir = dict()
@@ -194,19 +203,19 @@ for snsr in sensors:
     name = site + '_' + snsr
     lstm_univar_bidir[snsr] = model_workflow.lstm_detect_univar(
             df=sensor_array[snsr], sensor=snsr, params=site_params[site][snsr], LSTM_params=LSTM_params, model_type=ModelType.BIDIRECTIONAL, name=name,
-            rules=False, plots=False, summary=False,compare=False, model_output=False, model_save=False)
+            rules=False, plots=True, summary=False,compare=False, model_output=True, model_save=False)
 
 ###### 3、DATA: multivariate,  MODEL: vanilla / 多变量 + vanilla
 name = site
 lstm_multivar = model_workflow.lstm_detect_multivar(
         sensor_array=sensor_array, sensors=sensors, params=site_params[site], LSTM_params=LSTM_params, model_type=ModelType.VANILLA, name=name,
-        rules=False, plots=False, summary=False, compare=False, model_output=False, model_save=False)
+        rules=False, plots=True, summary=False, compare=False, model_output=True, model_save=False)
 
 ###### 4、DATA: multivariate,  MODEL: bidirectional / 多变量 + 双向
 name = site
 lstm_multivar_bidir = model_workflow.lstm_detect_multivar(
         sensor_array=sensor_array, sensors=sensors, params=site_params[site], LSTM_params=LSTM_params, model_type=ModelType.BIDIRECTIONAL, name=name,
-        rules=False, plots=False, summary=False, compare=False, model_output=False, model_save=False)
+        rules=False, plots=True, summary=False, compare=False, model_output=True, model_save=False)
 
 ##### 5、Aggregate Detections for All Models / 所有模型的聚合检测
 #########################################
@@ -223,13 +232,14 @@ for snsr in sensors:
                                                             models=models,
                                                             verbose=True,
                                                             compare=False)
-    # results_all[snsr], metrics_all[snsr] = anomaly_utilities.aggregate_results(df=sensor_array[snsr],
-    #                                                                            models=models,
-    #                                                                            verbose=True,
-    #                                                                            compare=True)
-    # print('\nOverall metrics')
-    # print('Sensor: ' + snsr)
-    # anomaly_utilities.print_metrics(metrics_all[snsr])
+    # Open Result print
+    results_all[snsr], metrics_all[snsr] = anomaly_utilities.aggregate_results(df=sensor_array[snsr],
+                                                                               models=models,
+                                                                               verbose=True,
+                                                                               compare=True)
+    print('\nOverall metrics')
+    print('Sensor: ' + snsr)
+    anomaly_utilities.print_metrics(metrics_all[snsr])
 
 # #### Saving Output
 # #########################################

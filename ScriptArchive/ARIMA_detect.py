@@ -99,6 +99,7 @@ plt.show()
 detections = anomaly_utilities.detect_anomalies(df['observed'], predictions, residuals, threshold, summary=True)
 
 # Use events function to widen and number anomalous events
+# 使用事件函数对异常事件进行放大和编号
 df['labeled_event'] = anomaly_utilities.anomaly_events(df['labeled_anomaly'], 1)
 df['detected_anomaly'] = detections['anomaly']
 df['all_anomalies'] = df.eval('detected_anomaly or anomaly')
